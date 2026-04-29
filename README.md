@@ -42,4 +42,4 @@ fields that aren't yet mapped.
 
 ## Polling
 
-The integration polls every 15 minutes. There is no way to push from Simyo.
+The integration polls every 5 hours. There is no way to push from Simyo.

@@ -6,7 +6,7 @@ DOMAIN = "simyo"
 
 CONF_PHONE_NUMBER = "phone_number"
 
-DEFAULT_SCAN_INTERVAL = timedelta(minutes=15)
+DEFAULT_SCAN_INTERVAL = timedelta(hours=5)
 
 API_BASE = "https://appapi.simyo.nl/simyoapi/api/v1"
 
