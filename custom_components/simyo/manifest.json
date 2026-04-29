@@ -1,0 +1,11 @@
+{
+  "domain": "simyo",
+  "name": "Simyo",
+  "codeowners": ["@jelmer"],
+  "config_flow": true,
+  "documentation": "https://github.com/jelmer/homeassistant-simyo",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/jelmer/homeassistant-simyo/issues",
+  "requirements": [],
+  "version": "0.1.0"
+}
