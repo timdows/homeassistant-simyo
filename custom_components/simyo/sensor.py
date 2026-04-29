@@ -173,7 +173,7 @@ SENSORS: tuple[SimyoSensorDescription, ...] = (
         section="usage",
         device_class=SensorDeviceClass.MONETARY,
         native_unit_of_measurement=CURRENCY_EURO,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.TOTAL,
         value_fn=lambda d: _first_match(
             d,
             (
