@@ -3,6 +3,33 @@
 A custom Home Assistant integration that polls the [Mijn Simyo](https://mijn.simyo.nl/)
 website API and exposes prepaid balance and available usage data as sensors.
 
+## Screenshots
+
+### Sign in to Mijn Simyo
+
+Enter your phone number and Mijn Simyo password in Home Assistant.
+
+![Simyo login form in Home Assistant](images/simyo-login.png)
+
+### Two-step verification
+
+If your account uses two-step verification, enter the code sent by Simyo.
+
+![Simyo two-factor verification form](images/simyo-two-factor-verification.png)
+
+### Prepaid balance in Mijn Simyo
+
+The prepaid overview on the Simyo website shows the available credit.
+
+![Prepaid balance on the Mijn Simyo website](images/simyo-prepaid-balance-website.png)
+
+### Sensors in Home Assistant
+
+The integration exposes the prepaid balance in Home Assistant. Other sensors
+may show `Unknown` when their values are unavailable or not yet mapped.
+
+![Simyo device and prepaid balance sensor in Home Assistant](images/simyo-home-assistant-sensors.png)
+
 ## Authentication and two-step verification
 
 This fork implements the Mijn Simyo website login and OTP flow observed in
