@@ -1,142 +1,163 @@
-# Home Assistant Simyo integration
+# Simyo-integratie voor Home Assistant
 
-A custom Home Assistant integration that polls the [Mijn Simyo](https://mijn.simyo.nl/)
-website API and exposes prepaid balance and available usage data as sensors.
+Een aangepaste Home Assistant-integratie die de website-API van
+[Mijn Simyo](https://mijn.simyo.nl/) periodiek uitleest en prepaidbeltegoed en
+beschikbare verbruiksgegevens als sensoren beschikbaar maakt.
 
-## Screenshots
+## Schermafbeeldingen
 
-### Sign in to Mijn Simyo
+### Inloggen bij Mijn Simyo
 
-Enter your phone number and Mijn Simyo password in Home Assistant.
+Vul je telefoonnummer en Mijn Simyo-wachtwoord in Home Assistant in.
 
-![Simyo login form in Home Assistant](images/simyo-login.png)
+![Simyo-inlogformulier in Home Assistant](images/simyo-login.png)
 
-### Two-step verification
+### Tweestapsverificatie
 
-If your account uses two-step verification, enter the code sent by Simyo.
+Als je account tweestapsverificatie gebruikt, vul je de code in die Simyo je stuurt.
 
-![Simyo two-factor verification form](images/simyo-two-factor-verification.png)
+![Formulier voor Simyo-tweestapsverificatie](images/simyo-two-factor-verification.png)
 
-### Prepaid balance in Mijn Simyo
+### Prepaidbeltegoed in Mijn Simyo
 
-The prepaid overview on the Simyo website shows the available credit.
+Het prepaidoverzicht op de Simyo-website toont het beschikbare beltegoed.
 
-![Prepaid balance on the Mijn Simyo website](images/simyo-prepaid-balance-website.png)
+![Prepaidbeltegoed op de Mijn Simyo-website](images/simyo-prepaid-balance-website.png)
 
-### Sensors in Home Assistant
+### Sensoren in Home Assistant
 
-The integration exposes the prepaid balance in Home Assistant. Other sensors
-may show `Unknown` when their values are unavailable or not yet mapped.
+De integratie toont het prepaidbeltegoed in Home Assistant. Andere sensoren
+kunnen `Unknown` (onbekend) tonen wanneer de gegevens ontbreken of nog niet
+correct aan een sensor zijn gekoppeld.
 
-![Simyo device and prepaid balance sensor in Home Assistant](images/simyo-home-assistant-sensors.png)
+![Simyo-apparaat en beltegoedsensor in Home Assistant](images/simyo-home-assistant-sensors.png)
 
-## Authentication and two-step verification
+## Aanmelden en tweestapsverificatie
 
-This fork implements the Mijn Simyo website login and OTP flow observed in
-browser DevTools on 2026-10-30. Login, OTP verification and data retrieval all
-use the same website session; website tokens are not sent to the app API.
+Deze fork implementeert de aanmelding en verificatie met een eenmalige code
+(OTP) van de Mijn Simyo-website, zoals onderzocht via de ontwikkelaarstools
+van de browser op 30 oktober 2026. Aanmelden, codeverificatie en het ophalen
+van gegevens gebruiken dezelfde websitesessie. Websitetokens worden niet
+naar de app-API gestuurd.
 
-1. `POST https://mijn.simyo.nl/auth/login` with `phoneNumber` and `password`.
-2. A response with `user.mfaStatus == PENDING_VERIFICATION` opens a separate
-   verification-code form. The restricted session token cannot fetch data.
-3. `POST /api/post?endpoint=securityVerifyOtp` with `rememberMe: false` and
-   `token: <six-digit code>`, using the **same private website cookie jar**.
-4. The verified token comes from `result.token`. The client calls
-   `POST /auth/update-token` with that token and `rememberMe: false`, exactly
-   as the website does, to update the server-side website session.
-5. Data uses `GET /api/get?endpoint=prepaidOverview` and
+1. `POST https://mijn.simyo.nl/auth/login` met `phoneNumber` en `password`.
+2. Een antwoord met `user.mfaStatus == PENDING_VERIFICATION` opent een apart
+   formulier voor de verificatiecode. Het beperkte sessietoken geeft nog
+   geen toegang tot de verbruiksgegevens.
+3. `POST /api/post?endpoint=securityVerifyOtp` met `rememberMe: false` en
+   `token: <zescijferige code>`, met **dezelfde eigen cookieopslag voor de websitesessie**.
+4. Het bevestigde token komt uit `result.token`. De client roept
+   `POST /auth/update-token` aan met dat token en `rememberMe: false`, net
+   als de website, om de websitesessie op de server bij te werken.
+5. Gegevens worden opgehaald via `GET /api/get?endpoint=prepaidOverview` en
    `GET /api/get?endpoint=getAggregated`.
 
-Home Assistant stores only the completed session token and allowlisted
-authentication/routing cookies with its config entry. Pending challenge
-cookies and OTP codes are never saved. No browser session is copied: these
-cookies belong to the integration's own successful login.
+Home Assistant bewaart alleen het bevestigde sessietoken en expliciet
+toegestane authenticatie- en routeringscookies bij de integratieconfiguratie.
+Cookies van een nog onbevestigde verificatie en eenmalige codes worden nooit
+opgeslagen. Er wordt geen browsersessie gekopieerd: deze cookies horen bij
+de eigen succesvolle aanmelding van de integratie.
 
-The initial login and OTP request are kept in the same config flow, including
-wrong-code retries. Expired challenges require a fresh login. Rate limits are
-shown without automatically resending codes. The integration does not mark
-the device as trusted or disable account security.
+De eerste aanmelding en het aanvragen van de code blijven binnen dezelfde
+configuratieprocedure, ook bij het opnieuw invoeren van een onjuiste code.
+Een verlopen verificatie vereist een nieuwe aanmelding. Verzoeklimieten
+worden gemeld zonder automatisch nieuwe codes te versturen. De integratie
+markeert het apparaat niet als vertrouwd en schakelt de accountbeveiliging
+niet uit.
 
-Home Assistant reuses the saved session after a restart. If Simyo expires
-it and asks for 2FA again, reauthentication asks for the password and code.
-English and Dutch forms are provided. Logs contain only fixed failure
-categories and HTTP status, never response bodies or authentication values.
+Home Assistant hergebruikt de opgeslagen sessie na een herstart. Als Simyo
+de sessie laat verlopen en opnieuw om tweestapsverificatie vraagt, moet je
+opnieuw je wachtwoord en een code invoeren. De formulieren zijn beschikbaar
+in het Nederlands en Engels. Logboeken bevatten alleen vaste foutcategorieën
+en HTTP-statuscodes, nooit antwoordinhoud of authenticatiegegevens.
 
-The original direct-app login probe remains available for diagnostics, but
-the integration no longer mixes app endpoints with website authentication.
+Het oorspronkelijke hulpmiddel voor rechtstreeks aanmelden bij de app-API
+blijft beschikbaar voor diagnose. De integratie combineert die app-API niet
+meer met de authenticatie van de website.
 
-## Validation and limitations
+## Controle en beperkingen
 
-The website request/response shapes above were inspected during a successful
-real browser login. Automated tests cover the client and config-flow state
-machine (using HA interface stubs), error redaction, token reuse, and actual
-HTTP cookie continuity against a **local fake server**. They do not certify
-an end-to-end Home Assistant login. The original live test confirmed OTP
-verification but exposed rejection by the app data API. The corrected
-website-only data flow still needs a live account check.
+De bovenstaande verzoeken en antwoorden zijn onderzocht tijdens een
+succesvolle aanmelding in de browser. Automatische tests controleren de
+client en de configuratiestappen met nagebootste Home Assistant-interfaces,
+het afschermen van geheime gegevens, het hergebruik van tokens en het behoud
+van HTTP-cookies via een **lokale testserver**. Deze tests vervangen geen
+volledige praktijktest in Home Assistant.
 
-To run tests with Python 3.12+:
+De gecorrigeerde aanmelding via de website is ook met een echt account
+getest: aanmelden met tweestapsverificatie, het ophalen van beltegoed en
+verbruik en het hergebruiken van de bevestigde sessie zijn geslaagd. In
+Home Assistant is het prepaidbeltegoed zichtbaar en kwam de koppeling na
+een herstart terug zonder nieuwe verificatiecode.
+
+Voer de tests uit met Python 3.12 of hoger:
 
 ```sh
 python -m pip install aiohttp voluptuous
 python -m unittest discover -s tests -v
 ```
 
-To validate the actual fork locally without installing Home Assistant:
+Test deze fork lokaal zonder Home Assistant te installeren:
 
 ```sh
 python tools/verify_2fa.py
 ```
 
-The live check prompts for credentials and the code locally (hidden), prints
-only success/failure categories, and does not save tokens or responses. It
-also checks data retrieval and restores the completed website session into
-a new client to test restart behavior without sending another OTP.
+Deze praktijktest vraagt lokaal om je inloggegevens en verificatiecode
+(beide verborgen), toont alleen of stappen slagen of mislukken en bewaart
+geen tokens of antwoorden. De test haalt gegevens op en herstelt de
+bevestigde websitesessie in een nieuwe client om hergebruik zonder een
+nieuwe verificatiecode te controleren.
 
-This is unofficial and depends on private Simyo interfaces. The original
-sensor platform probes likely field paths and exposes raw balance/usage
-sections as entity attributes. Prepaid field mapping may need adjustment
-even after authentication succeeds.
+Dit is een onofficiële integratie die afhankelijk is van niet-openbare
+Simyo-interfaces. De oorspronkelijke sensorimplementatie probeert gegevens
+op verwachte veldpaden te vinden en biedt de ruwe beltegoed- en
+verbruiksgegevens als entiteitsattributen aan. De koppeling van prepaidvelden
+aan sensoren kan nog aanpassing nodig hebben, ook als aanmelden lukt.
 
-## Installation
+## Installatie
 
-1. Copy `custom_components/simyo` into your Home Assistant `config/custom_components/` directory.
-2. Restart Home Assistant.
-3. Go to **Settings → Devices & Services → Add Integration** and pick **Simyo**.
-4. Enter your Simyo phone number (e.g. `0612345678`) and your Mijn Simyo password.
-5. If requested, enter the latest six-digit verification code in the separate form.
+1. Kopieer `custom_components/simyo` naar de map `config/custom_components/` van Home Assistant.
+2. Herstart Home Assistant.
+3. Ga naar **Instellingen → Apparaten & diensten → Integratie toevoegen** en kies **Simyo**.
+4. Vul je Simyo-telefoonnummer (bijvoorbeeld `0612345678`) en Mijn Simyo-wachtwoord in.
+5. Vul zo nodig de nieuwste zescijferige verificatiecode in het aparte formulier in.
 
-## Sensors
+## Sensoren
 
-| Sensor | Source endpoint |
-| ------ | --------------- |
-| Balance | `balance` |
-| Data used / remaining | `usage` |
-| Voice minutes used / remaining | `usage` |
-| SMS used / remaining | `usage` |
-| Out-of-bundle costs | `usage` |
+| Sensor | Gegevenssectie |
+| ------ | -------------- |
+| Beltegoed | `balance` |
+| Dataverbruik / resterende data | `usage` |
+| Verbruikte / resterende belminuten | `usage` |
+| Verbruikte / resterende sms'jes | `usage` |
+| Kosten buiten de bundel | `usage` |
 
-Each sensor also publishes the full raw section payload as the `raw`
-attribute, which is useful for debugging or for building template sensors on
-fields that aren't yet mapped.
+Elke sensor biedt de volledige ruwe gegevenssectie ook aan via het attribuut
+`raw`. Dit helpt bij foutonderzoek en bij het maken van templatesensoren
+voor velden die nog niet aan een sensor zijn gekoppeld.
 
-## Polling
+## Vernieuwen van gegevens
 
-The integration polls every 5 hours. There is no way to push from Simyo.
+De integratie haalt elke 5 uur gegevens op. Simyo stuurt wijzigingen niet
+rechtstreeks naar de integratie.
 
-## Legacy app-login diagnostics
+## Diagnose van de oude app-aanmelding
 
-`python tools/probe_login.py` still probes the older direct app login and
-prints a redacted response structure. It does not perform the website OTP
-flow. Use `tools/verify_2fa.py` to test this fork's actual authentication.
+`python tools/probe_login.py` onderzoekt de oudere rechtstreekse
+app-aanmelding en toont de antwoordstructuur met afgeschermde waarden.
+Dit hulpmiddel voert de websiteverificatie niet uit. Gebruik
+`tools/verify_2fa.py` om de huidige aanmelding van deze fork te testen.
 
-## Local branding
+## Lokale logo's
 
-Official Simyo icon and wordmark are bundled in `custom_components/simyo/brand/`
-(normal and high-resolution PNGs), supported by Home Assistant 2026.3+. The
-frontend can serve them locally without depending on an external brand lookup.
+Het officiële Simyo-pictogram en woordmerk staan in
+`custom_components/simyo/brand/`, als PNG-bestanden in normale en hoge
+resolutie, inclusief varianten voor het donkere thema. Home Assistant
+2026.3 en hoger ondersteunt deze lokale afbeeldingen. De gebruikersinterface
+kan ze daardoor tonen zonder afhankelijk te zijn van een externe logodienst.
 
-Image sources: [Simyo icon](https://www.simyo.nl/assets/favicon/apple-touch-icon.png)
-and [Simyo wordmark](https://www.simyo.nl/assets/images/logo/simyo-yorange.svg).
-Simyo names and images remain trademarks of their respective owner. This
-unofficial integration is not affiliated with Simyo.
+Afbeeldingsbronnen: [Simyo-pictogram](https://www.simyo.nl/assets/favicon/apple-touch-icon.png)
+en [Simyo-woordmerk](https://www.simyo.nl/assets/images/logo/simyo-yorange.svg).
+De Simyo-naam en afbeeldingen blijven handelsmerken van hun respectieve
+eigenaar. Deze onofficiële integratie is niet verbonden aan Simyo.

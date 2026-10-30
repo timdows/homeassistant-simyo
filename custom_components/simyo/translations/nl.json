@@ -40,28 +40,28 @@
   "entity": {
     "sensor": {
       "balance": {
-        "name": "Balance"
+        "name": "Beltegoed"
       },
       "data_used": {
-        "name": "Data used"
+        "name": "Dataverbruik"
       },
       "data_remaining": {
-        "name": "Data remaining"
+        "name": "Resterende data"
       },
       "voice_used": {
-        "name": "Voice minutes used"
+        "name": "Verbruikte belminuten"
       },
       "voice_remaining": {
-        "name": "Voice minutes remaining"
+        "name": "Resterende belminuten"
       },
       "sms_used": {
-        "name": "SMS used"
+        "name": "Verbruikte sms'jes"
       },
       "sms_remaining": {
-        "name": "SMS remaining"
+        "name": "Resterende sms'jes"
       },
       "out_of_bundle_costs": {
-        "name": "Out-of-bundle costs"
+        "name": "Kosten buiten de bundel"
       }
     }
   }
