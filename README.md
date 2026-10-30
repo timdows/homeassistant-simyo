@@ -102,3 +102,14 @@ The integration polls every 5 hours. There is no way to push from Simyo.
 `python tools/probe_login.py` still probes the older direct app login and
 prints a redacted response structure. It does not perform the website OTP
 flow. Use `tools/verify_2fa.py` to test this fork's actual authentication.
+
+## Local branding
+
+Official Simyo icon and wordmark are bundled in `custom_components/simyo/brand/`
+(normal and high-resolution PNGs), supported by Home Assistant 2026.3+. The
+frontend can serve them locally without depending on an external brand lookup.
+
+Image sources: [Simyo icon](https://www.simyo.nl/assets/favicon/apple-touch-icon.png)
+and [Simyo wordmark](https://www.simyo.nl/assets/images/logo/simyo-yorange.svg).
+Simyo names and images remain trademarks of their respective owner. This
+unofficial integration is not affiliated with Simyo.
